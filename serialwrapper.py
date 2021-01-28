@@ -44,8 +44,9 @@ class SerialWrapper:
                 status, buffer = cls._receiveSM(buffer, message)
                 if status:
                     if cls._itemNum:
+                        itemNum = cls._itemNum
                         cls._itemNum = 0
-                        return buffer
+                        return buffer, itemNum
             else:
                 cls._state = cls._State.INIT
                 cls._itemNum = 0
