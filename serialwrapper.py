@@ -34,7 +34,7 @@ class SerialWrapper:
     @classmethod
     def receive(cls, buffer):
         while cls._serial.in_waiting:
-            status, buffer = cls._receiveSM(buffer, ord(cls._serial.read()))
+            status, buffer = cls._receiveSM(buffer, cls._unprocess(cls._serial.read()))
             if status:
                 if cls._itemNum:
                     cls._itemNum = 0
@@ -88,6 +88,10 @@ class SerialWrapper:
     @classmethod
     def _process(cls, byte):
         return bytes([byte])
+
+    @classmethod
+    def _unprocess(cls, byte):
+        return ord(byte)
     
     class _State(enum.Enum):
         INIT = 0
