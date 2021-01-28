@@ -6,19 +6,20 @@ class SerialWrapper:
     @classmethod
     def begin(cls, serial_port, baud_rate):
         cls._serial = serial.Serial(serial_port, baud_rate)
-        cls._DELIMITER_BYTE = 0xff
-        cls._DELIMITER_BYTE_PCS = cls._process(cls._DELIMITER_BYTE)
-        cls._ESCAPE_BYTE = 0xfe
-        cls._ESCAPE_BYTE_PCS = cls._process(cls._ESCAPE_BYTE)
-        cls._CONVERSION = 0x80
-        cls._state = cls._State.INIT
-        cls._itemNum = 0
 
         cls._CRC_CALCULATOR =   [0,
                                 3, 6, 5, 7, 4, 1, 2, 5, 6, 3,
                                 0, 2, 1, 4, 7, 1, 2, 7, 4, 6,
                                 5, 0, 3, 4, 7, 2, 1, 3, 0, 5,
                                 6]
+
+        cls._DELIMITER_BYTE = 0x1f
+        cls._DELIMITER_BYTE_PCS = cls._process(cls._DELIMITER_BYTE)
+        cls._ESCAPE_BYTE = 0x1e
+        cls._ESCAPE_BYTE_PCS = cls._process(cls._ESCAPE_BYTE)
+        cls._CONVERSION = 0x10
+        cls._state = cls._State.INIT
+        cls._itemNum = 0
 
     @classmethod
     def send(cls, buffer):
@@ -34,11 +35,16 @@ class SerialWrapper:
     @classmethod
     def receive(cls, buffer):
         while cls._serial.in_waiting:
-            status, buffer = cls._receiveSM(buffer, cls._unprocess(cls._serial.read()))
-            if status:
-                if cls._itemNum:
-                    cls._itemNum = 0
-                    return buffer
+            message = cls._unprocess(cls._serial.read())
+            if message != -1:
+                status, buffer = cls._receiveSM(buffer, message)
+                if status:
+                    if cls._itemNum:
+                        cls._itemNum = 0
+                        return buffer
+            else:
+                cls._state = cls._State.INIT
+                cls._itemNum = 0
 
         return -1
 
@@ -69,12 +75,13 @@ class SerialWrapper:
 
     @classmethod
     def _undoCRC(cls, crc_byte):
-        message = (crc_byte & 0xf8) / 8
+        message = (crc_byte & 0xf8) // 8
         crc = crc_byte & 0x07
 
         if cls._CRC_CALCULATOR[message] == crc:
             return message
         else:
+            print("[WARNING] CORRUPT BYTE DETECTED")
             return -1
 
     @classmethod
@@ -87,11 +94,15 @@ class SerialWrapper:
     
     @classmethod
     def _process(cls, byte):
-        return bytes([byte])
+        return bytes([cls._doCRC(byte)])
 
     @classmethod
     def _unprocess(cls, byte):
-        return ord(byte)
+        return cls._undoCRC(ord(byte))
+    
+    @classmethod
+    def getSerial(cls):  #Remove
+        return cls._serial
     
     class _State(enum.Enum):
         INIT = 0
