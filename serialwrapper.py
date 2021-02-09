@@ -31,15 +31,7 @@ class SerialWrapper:
         """Sends packet with protocol"""
         cls._serial.write(cls._DELIMITER_BYTE_PCS)
         for item in packet:
-            if item > 0x1f:
-                while True:
-                    print("[ERROR] TRYING TO SEND BYTE BIGGER THAN 0x1f")
-            else:
-                if (item == cls._DELIMITER_BYTE or item == cls._ESCAPE_BYTE):
-                    cls._serial.write(cls._ESCAPE_BYTE_PCS)
-                    cls._serial.write(cls._process(cls._escape(item)))
-                else:
-                    cls._serial.write(cls._process(item))
+            cls._write(item)
         cls._serial.write(cls._DELIMITER_BYTE_PCS)
 
     @classmethod
@@ -59,6 +51,14 @@ class SerialWrapper:
                 cls._itemNum = 0
 
         return -1
+
+    @classmethod
+    def _write(cls, item):
+        if (item == cls._DELIMITER_BYTE or item == cls._ESCAPE_BYTE):
+            cls._serial.write(cls._ESCAPE_BYTE_PCS)
+            cls._serial.write(cls._process(cls._escape(item)))
+        else:
+            cls._serial.write(cls._process(item))
 
     @classmethod
     def _receiveSM(cls, buffer, byte_in):
