@@ -36,8 +36,6 @@ class SerialWrapper:
         """Sends packet with protocol"""
         cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
         for item in packet:
-            cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
-
             if item < 0:
                 itemByte = (abs(item) << 1) + 1
             else:
