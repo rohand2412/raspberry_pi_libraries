@@ -3,6 +3,7 @@
 
 import enum
 import serial
+import numpy as np
 
 class SerialWrapper:
     """Class containing usage methods of the Serial Protocol"""
@@ -18,21 +19,44 @@ class SerialWrapper:
                                5, 0, 3, 4, 7, 2, 1, 3, 0, 5,
                                6]
 
-        cls._DELIMITER_BYTE = 0x1f
-        cls._DELIMITER_BYTE_PCS = cls._process(cls._DELIMITER_BYTE)
+        cls._PACKET_DELIMITER_BYTE = 0x1f
+        cls._PACKET_DELIMITER_BYTE_PCS = cls._process(cls._PACKET_DELIMITER_BYTE)
+        cls._ITEM_DELIMITER_BYTE = 0x1d
+        cls._ITEM_DELIMITER_BYTE_PCS = cls._process(cls._ITEM_DELIMITER_BYTE)
         cls._ESCAPE_BYTE = 0x1e
         cls._ESCAPE_BYTE_PCS = cls._process(cls._ESCAPE_BYTE)
         cls._CONVERSION = 0x10
+        cls._ITEM_BIT_LEN = 5
+        cls._MAX_ITEM_BYTES = 7
         cls._state = cls._State.INIT
         cls._itemNum = 0
 
     @classmethod
     def send(cls, packet):
         """Sends packet with protocol"""
-        cls._serial.write(cls._DELIMITER_BYTE_PCS)
+        cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
         for item in packet:
-            cls._write(item)
-        cls._serial.write(cls._DELIMITER_BYTE_PCS)
+            cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
+
+            cls._write(item < 0)
+
+            itemByte = abs(item)
+            itemBytes = np.zeros(cls._MAX_ITEM_BYTES, dtype=np.uint8)
+            bytesNum = 0
+
+            for bytesNum in range(cls._MAX_ITEM_BYTES):
+                itemBytes[bytesNum] = itemByte & 0x1f
+                itemByte = itemByte >> cls._ITEM_BIT_LEN
+
+            for bytesNum in range(bytesNum, -1, -1):
+                if itemBytes[bytesNum] != 0:
+                    break
+
+            for byteIndex in range(bytesNum, -1, -1):
+                cls._write(itemBytes[byteIndex])
+
+            cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
+        cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
 
     @classmethod
     def receive(cls, packet):
@@ -54,7 +78,7 @@ class SerialWrapper:
 
     @classmethod
     def _write(cls, item):
-        if (item == cls._DELIMITER_BYTE or item == cls._ESCAPE_BYTE):
+        if (item == cls._PACKET_DELIMITER_BYTE or item == cls._ITEM_DELIMITER_BYTE or item == cls._ESCAPE_BYTE):
             cls._serial.write(cls._ESCAPE_BYTE_PCS)
             cls._serial.write(cls._process(cls._escape(item)))
         else:
@@ -64,11 +88,11 @@ class SerialWrapper:
     def _receiveSM(cls, buffer, byte_in):
         """Facilitate protocol with state machine"""
         if cls._state == cls._State.INIT:
-            if byte_in == cls._DELIMITER_BYTE:
+            if byte_in == cls._PACKET_DELIMITER_BYTE:
                 cls._state = cls._State.NORMAL
             return False, buffer
         elif cls._state == cls._State.NORMAL:
-            if byte_in == cls._DELIMITER_BYTE:
+            if byte_in == cls._PACKET_DELIMITER_BYTE:
                 return True, buffer
             if byte_in == cls._ESCAPE_BYTE:
                 cls._state = cls._State.ESCAPE
