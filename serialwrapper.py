@@ -38,9 +38,11 @@ class SerialWrapper:
         for item in packet:
             cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
 
-            cls._write(item < 0)
+            if item < 0:
+                itemByte = (abs(item) << 1) + 1
+            else:
+                itemByte = abs(item) << 1
 
-            itemByte = abs(item)
             itemBytes = np.zeros(cls._MAX_ITEM_BYTES, dtype=np.uint8)
             bytesNum = 0
 
