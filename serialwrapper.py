@@ -37,11 +37,7 @@ class SerialWrapper:
         """Sends packet with protocol"""
         cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
         for item in packet:
-            if item < 0:
-                itemByte = (abs(item) << 1) + 1
-            else:
-                itemByte = abs(item) << 1
-
+            itemByte = item
             itemBytes = np.zeros(cls._MAX_ITEM_BYTES, dtype=np.uint8)
             bytesNum = 0
 
@@ -97,12 +93,8 @@ class SerialWrapper:
             if byte_in == cls._PACKET_DELIMITER_BYTE:
                 return True, buffer
             if byte_in == cls._ITEM_DELIMITER_BYTE:
-                if cls._item & 0x1:
-                    buffer[cls._itemNum] = (cls._item >> 1) * -1
-                    cls._itemNum += 1
-                else:
-                    buffer[cls._itemNum] = cls._item >> 1
-                    cls._itemNum += 1
+                buffer[cls._itemNum] = np.int32(np.uint32(cls._item))
+                cls._itemNum += 1
                 cls._item = 0
                 return False, buffer
             if byte_in == cls._ESCAPE_BYTE:
