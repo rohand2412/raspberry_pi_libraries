@@ -36,22 +36,26 @@ class SerialWrapper:
         """Sends packet with protocol"""
         cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
         for item in packet:
-            itemByte = item
-            itemBytes = np.zeros(cls._MAX_ITEM_BYTES, dtype=np.uint8)
-            bytesNum = 0
+            if item > 0x7FFFFFFF or item < -0x80000000:
+                while True:
+                    print("[ERROR] ITEM TOO LARGE! KEEP ITEMS BETWEEN 0x7FFFFFFF AND -0x80000000")
+            else:
+                itemByte = item
+                itemBytes = np.zeros(cls._MAX_ITEM_BYTES, dtype=np.uint8)
+                bytesNum = 0
 
-            for bytesNum in range(cls._MAX_ITEM_BYTES):
-                itemBytes[bytesNum] = itemByte & 0x1f
-                itemByte = itemByte >> cls._ITEM_BIT_LEN
+                for bytesNum in range(cls._MAX_ITEM_BYTES):
+                    itemBytes[bytesNum] = itemByte & 0x1f
+                    itemByte = itemByte >> cls._ITEM_BIT_LEN
 
-            for bytesNum in range(bytesNum, -1, -1):
-                if itemBytes[bytesNum] != 0:
-                    break
+                for bytesNum in range(bytesNum, -1, -1):
+                    if itemBytes[bytesNum] != 0:
+                        break
 
-            for byteIndex in range(bytesNum, -1, -1):
-                cls._write(itemBytes[byteIndex])
+                for byteIndex in range(bytesNum, -1, -1):
+                    cls._write(itemBytes[byteIndex])
 
-            cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
+                cls._serial.write(cls._ITEM_DELIMITER_BYTE_PCS)
         cls._serial.write(cls._PACKET_DELIMITER_BYTE_PCS)
 
     @classmethod
