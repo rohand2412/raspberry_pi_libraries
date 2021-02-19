@@ -94,6 +94,9 @@ class SerialWrapper:
                 cls._itemNum += 1
                 if cls._itemNum < len(buffer):
                     buffer[cls._itemNum] = 0
+                else:
+                    while True:
+                        print("[ERROR] PACKET LENGTH OVERFLOW! PLEASE ALLOCATE MORE MEMORY!")
                 return False, buffer
             if byte_in == cls._ESCAPE_BYTE:
                 cls._state = cls._State.ESCAPE
