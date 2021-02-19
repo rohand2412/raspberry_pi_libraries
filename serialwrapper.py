@@ -30,7 +30,6 @@ class SerialWrapper:
         cls._MAX_ITEM_BYTES = 7
         cls._state = cls._State.INIT
         cls._itemNum = 0
-        cls._item = 0
 
     @classmethod
     def send(cls, packet):
@@ -70,7 +69,6 @@ class SerialWrapper:
             else:
                 cls._state = cls._State.INIT
                 cls._itemNum = 0
-                cls._item = 0
 
         return -1
 
@@ -93,19 +91,19 @@ class SerialWrapper:
             if byte_in == cls._PACKET_DELIMITER_BYTE:
                 return True, buffer
             if byte_in == cls._ITEM_DELIMITER_BYTE:
-                buffer[cls._itemNum] = np.int32(np.uint32(cls._item))
                 cls._itemNum += 1
-                cls._item = 0
+                if cls._itemNum < len(buffer):
+                    buffer[cls._itemNum] = 0
                 return False, buffer
             if byte_in == cls._ESCAPE_BYTE:
                 cls._state = cls._State.ESCAPE
                 return False, buffer
-            cls._item = cls._item << cls._ITEM_BIT_LEN
-            cls._item += byte_in
+            buffer[cls._itemNum] = buffer[cls._itemNum] << cls._ITEM_BIT_LEN
+            buffer[cls._itemNum] += byte_in
             return False, buffer
         elif cls._state == cls._State.ESCAPE:
-            cls._item = cls._item << cls._ITEM_BIT_LEN
-            cls._item += cls._unescape(byte_in)
+            buffer[cls._itemNum] = buffer[cls._itemNum] << cls._ITEM_BIT_LEN
+            buffer[cls._itemNum] += cls._unescape(byte_in)
             cls._state = cls._State.NORMAL
             return False, buffer
 
