@@ -4,5 +4,15 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings":
+	{
+		"files.autoSave": "onFocusChange",
+		"workbench.editor.enablePreview": false,
+		"editor.formatOnType": true,
+		"editor.codeActionsOnSave": {},
+		"python.linting.pylintArgs": ["--generated-members=cv2.*"],
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintUseMinimalCheckers": false
+	}
 }
