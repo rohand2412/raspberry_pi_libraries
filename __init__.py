@@ -1,2 +1,2 @@
 """Collection of modules interfacing various hardware components on the Raspberry Pi"""
-from .serialwrapper import *
+from .serial_wrapper import *
