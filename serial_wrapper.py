@@ -70,6 +70,8 @@ class SerialWrapper:
                         itemNum = cls._itemNum
                         cls._itemNum = 0
                         return packet, itemNum
+                    else:
+                        packet = np.zeros(len(packet), np.int32)
             else:
                 cls._state = cls._State.INIT
                 cls._itemNum = 0
@@ -96,9 +98,7 @@ class SerialWrapper:
                 return True, buffer
             if byte_in == cls._ITEM_DELIMITER_BYTE:
                 cls._itemNum += 1
-                if cls._itemNum < len(buffer):
-                    buffer[cls._itemNum] = 0
-                else:
+                if cls._itemNum >= len(buffer):
                     while True:
                         print("[ERROR] PACKET LENGTH OVERFLOW! PLEASE ALLOCATE MORE MEMORY!")
                 return False, buffer
