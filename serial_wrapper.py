@@ -76,7 +76,7 @@ class SerialWrapper:
                 cls._state = cls._State.INIT
                 cls._itemNum = 0
 
-        return -1
+        return packet, -1
 
     @classmethod
     def _write(cls, item):
