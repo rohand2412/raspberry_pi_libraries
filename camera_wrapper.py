@@ -2,6 +2,7 @@
 """This script contains all of the modules that are tied to the camera"""
 
 import picamera
+from picamera.array import PiRGBArray
 import time
 import numpy as np
 import cv2
@@ -25,7 +26,7 @@ class Packages:
 
         def capture_frame(self):
             """Reads the frame from the video stream"""
-            with picamera.array.PiRGBArray(self._camera, size=(self._width, self._height)) as stream:
+            with PiRGBArray(self._camera, size=(self._width, self._height)) as stream:
                 self._camera.capture(stream, format="bgr", use_video_port=True)
                 self._frame = stream.array
 
