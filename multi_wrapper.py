@@ -524,3 +524,32 @@ class Packages:
                     else:
                         labels[row_number] = pair[0].strip()
             return labels
+
+    class Xml:
+        """Collection of xml manipulation methods"""
+        @staticmethod
+        def indent(elem, level=0, more_sibs=False):
+            """Indents xml object properly in preparation for saving"""
+            i = "\n"
+            indentchar = '\t'
+            if level:
+                i += (level-1) * indentchar
+            num_kids = len(elem)
+            if num_kids:
+                if not elem.text or not elem.text.strip():
+                    elem.text = i + indentchar
+                    if level:
+                        elem.text += indentchar
+                count = 0
+                for kid in elem:
+                    Packages.Xml.indent(kid, level+1, count < num_kids - 1)
+                    count += 1
+                if not elem.tail or not elem.tail.strip():
+                    elem.tail = i
+                    if more_sibs:
+                        elem.tail += indentchar
+            else:
+                if level and (not elem.tail or not elem.tail.strip()):
+                    elem.tail = i
+                    if more_sibs:
+                        elem.tail += indentchar
