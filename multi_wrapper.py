@@ -189,6 +189,7 @@ class Packages:
                     elif (datetime.datetime.now() - self._start_delay).total_seconds() >= (self._delay/1000.0):
                         self._start_delay = None
                 elif self._mode == Packages.READDIR_SLIDESHOW_MODE_KEYBOARD:
+                    self._keyboard.update_events()
                     while not self._keyboard.get_events().empty():
                         event = self._keyboard.get_events().get()
                         if event.get_name() == self._left_key:
@@ -342,6 +343,13 @@ class Packages:
                     break
             return key_names
 
+        def update_events(self):
+            """Put new events if key data changed"""
+            for key_name in self.get_key_names():
+                if self._keys[key_name].get_state():
+                    if self._keys[key_name].check_for_action_update():
+                        self._events.put(self._keys[key_name], block=False)
+
         def get_events(self):
             """Returns events queue"""
             return self._events
@@ -351,6 +359,7 @@ class Packages:
                 self._state = False
                 self._name = name
                 self._timer = Packages.Timer()
+                self._sent_hold_message = False
 
             @staticmethod
             def name(key):
@@ -375,6 +384,16 @@ class Packages:
                     print("state: ", self._state)
                     print("name: ", self._name)
                     self._timer.debug(debug)
+
+            def check_for_action_update(self):
+                """Check if the action has changed from 'tap' to 'hold'"""
+                if self.get_action_type() == Packages.KEYBOARD_ACTION_TYPE_HOLD:
+                    if not self._sent_hold_message:
+                        self._sent_hold_message = True
+                        return True
+                else:
+                    self._sent_hold_message = False
+                return False
 
             def get_action_type(self):
                 """Classify key action as 'tap' or 'hold' based on press duration"""
