@@ -163,7 +163,7 @@ class Packages:
 
                 self._images = [None for name in self._names]
                 for i, name in enumerate(self._names):
-                    self._images[i] = cv2.imread(self._target_dir+r'/'+name)
+                    self._images[i] = cv2.imread(self._target_dir+name)
                     self._images[i] = cv2.putText(self._images[i], text=str(self._digits[i]),
                                                   org=(0, 25), fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                                                   fontScale=1, color=(0, 255, 0), thickness=2,
@@ -323,8 +323,13 @@ class Packages:
         def _produce(self, state, key):
             """Produces key into events queue"""
             key_name = self._Key.name(key)
-            self._keys[key_name].set_state(state)
-            self._events.put(self._keys[key_name], block=False)
+            try:
+                self._keys[key_name].set_state(state)
+                self._events.put(self._keys[key_name], block=False)
+            except KeyError:
+                unknown_key = self._Key(key_name)
+                unknown_key.set_state(state)
+                self._events.put(unknown_key, block=False)
 
         def consume(self):
             """Consumes keys in the events queue"""
@@ -339,7 +344,8 @@ class Packages:
                     special_keys = np.array(data)
                     lowercase_alphabet = np.array(list(string.ascii_lowercase),
                                                   dtype=special_keys.dtype)
-                    key_names = np.concatenate((special_keys, lowercase_alphabet))
+                    numbers = np.array([str(i) for i in range(10)])
+                    key_names = np.concatenate((special_keys, lowercase_alphabet, numbers))
                     break
             return key_names
 
