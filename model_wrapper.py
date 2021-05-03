@@ -40,4 +40,4 @@ class ModelWrapper:
             scores = self._interpreter.get_tensor(self._output_details[2]['index'])
             num = self._interpreter.get_tensor(self._output_details[3]['index'])
 
-            return {'boxes': boxes, 'classes': classes, 'scores': scores, 'num': num}
+            return {'boxes': boxes[0], 'classes': classes[0], 'scores': scores[0], 'num': num[0]}
