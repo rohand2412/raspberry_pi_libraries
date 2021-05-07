@@ -27,7 +27,10 @@ class ModelWrapper:
         """Invokes interpreter on image"""
         image = cv2.resize(raw_image, (self._input_width, self._input_height))
 
-        image = np.expand_dims(image, axis=0).astype(np.float32)
+        if self._mode == self.REGRESSION:
+            image = np.expand_dims(image, axis=0).astype(np.float32)
+        elif self._mode == self.OBJECT_DETECTION:
+            image = np.round(np.expand_dims(image, axis=0)).astype(np.uint8)
 
         self._interpreter.set_tensor(self._input_index, image)
         self._interpreter.invoke()
@@ -40,9 +43,10 @@ class ModelWrapper:
             scores = self._interpreter.get_tensor(self._output_details[2]['index'])[0]
             num = self._interpreter.get_tensor(self._output_details[3]['index'])[0]
 
-            boxes[:, 0] = boxes[:, 0] * self._input_height
-            boxes[:, 1] = boxes[:, 1] * self._input_width
-            boxes[:, 2] = boxes[:, 2] * self._input_height
-            boxes[:, 3] = boxes[:, 3] * self._input_width
-
             return {'boxes': boxes, 'classes': classes, 'scores': scores, 'num': num}
+
+    def get_box(self, box):
+        return ((int(box[1] * self._input_width),
+                 int(box[0] * self._input_height)),
+                (int(box[3] * self._input_width),
+                 int(box[2] * self._input_height)))
