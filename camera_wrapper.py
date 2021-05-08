@@ -13,7 +13,8 @@ class Packages:
 
     class Frame:
         """Keeps track of all data regarding the video stream"""
-        def __init__(self, name):
+        def __init__(self, name, img_format="bgr"):
+            self._format = img_format
             self._width = 640
             self._height = 480
             self._camera = picamera.PiCamera()
@@ -28,7 +29,7 @@ class Packages:
         def capture_frame(self):
             """Reads the frame from the video stream"""
             try:
-                self._camera.capture(self._frame, format="bgr", use_video_port=True)
+                self._camera.capture(self._frame, format=self._format, use_video_port=True)
             except:
                 raise multi_wrapper.Packages.Break()
 
