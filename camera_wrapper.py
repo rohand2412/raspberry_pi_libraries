@@ -6,6 +6,7 @@ from picamera.array import PiRGBArray
 import time
 import numpy as np
 import cv2
+from raspberry_pi_libraries import multi_wrapper
 
 class Packages:
     """Encapsulates all classes in this file in case inheritance of these classes is necessary"""
@@ -22,13 +23,14 @@ class Packages:
             time.sleep(0.1)
             self._camera.stop_preview()
             self._name = name
-            self._frame = np.array([])
+            self._frame = np.empty((self._height, self._width, 3), dtype=np.uint8)
 
         def capture_frame(self):
             """Reads the frame from the video stream"""
-            with PiRGBArray(self._camera, size=(self._width, self._height)) as stream:
-                self._camera.capture(stream, format="bgr", use_video_port=True)
-                self._frame = stream.array
+            try:
+                self._camera.capture(self._frame, format="bgr", use_video_port=True)
+            except:
+                raise multi_wrapper.Packages.Break()
 
         def preprocessing(self):
             """Preprocesses the frame"""
