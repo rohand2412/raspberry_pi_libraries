@@ -40,4 +40,4 @@ Replace `3.X` with the python version of your environment.
 
 ## Example Code
 
-[This repository](https://gitlab.com/rohand2412/opencv-capture-data-for-ml) is a collection of scripts that uses this package to manipulate data.
+[Here](https://gitlab.com/rohand2412/opencv-capture-data-for-ml) is a collection of scripts that uses this package to manipulate data.
