@@ -23,7 +23,9 @@ The following structure includes all the classes this library encompasses:
 + `model_wrapper.py`
     + ModelWrapper
 + `serial_wrapper.py`
-    + SerialWrapper
+    + SerialWrapper*
+
+*There is a [C++ version](https://gitlab.com/rohand2412/arduino-due-libraries) of the Serial_Wrapper class so that a wider range of devices, not limited to Python, can communicate amongst each other.
 
 ## Getting Started
 
